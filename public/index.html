@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Dashboard Konveyor Pabrik</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f4; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; }
+        input[type=range] { width: 300px; margin: 20px 0; }
+        .btn-stop { background-color: #dc3545; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; }
+        .btn-stop:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Kontrol Mesin Konveyor</h2>
+        <p>Atur kecepatan motor (PWM): <span id="pwmValue">0</span></p>
+        
+        <input type="range" min="0" max="255" value="0" id="pwmSlider">
+        <br><br>
+        
+        <button class="btn-stop" onclick="stopMotor()">EMERGENCY STOP (WEB)</button>
+    </div>
+
+    <script>
+        // GANTI INI DENGAN IP ADDRESS ESP32 NODE B NANTI (Misal: 192.168.1.15)
+        var gateway = `wss://NANTI-DIISI-URL-RAILWAY.up.railway.app`; // Dikosongin dulu gapapa
+var websocket;
+
+function initWebSocket() {
+    websocket = new WebSocket(gateway);
+    websocket.onopen = function(e) { console.log('Koneksi berhasil!'); };
+    websocket.onclose = function(e) { setTimeout(initWebSocket, 2000); };
+}
+
+document.getElementById('pwmSlider').addEventListener('input', function() {
+    var pwmVal = this.value;
+    document.getElementById('pwmValue').innerText = pwmVal;
+    websocket.send("PWM:" + pwmVal); // WAJIB TAMBAH "PWM:"
+});
+
+function stopMotor() {
+    document.getElementById('pwmSlider').value = 0;
+    document.getElementById('pwmValue').innerText = "0";
+    websocket.send("PWM:0"); // WAJIB TAMBAH "PWM:"
+}
+window.addEventListener('load', initWebSocket);
+    </script>
+
+</body>
+</html> 

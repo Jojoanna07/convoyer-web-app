@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Konveyor Pabrik</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f4; }
@@ -25,9 +25,10 @@
     </div>
 
     <script>
-        // GANTI INI DENGAN IP ADDRESS ESP32 NODE B NANTI (Misal: 192.168.1.15)
-        var gateway = `wss://NANTI-DIISI-URL-RAILWAY.up.railway.app`; // Dikosongin dulu gapapa
+        // NANTI GANTI "nama-project-kamu" SESUAI LINK DARI RAILWAY!
+        var gateway = `wss://websocket-production-f022.up.railway.app`;
 var websocket;
+var debounceTimer; // Tambahkan variabel ini
 
 function initWebSocket() {
     websocket = new WebSocket(gateway);
@@ -37,17 +38,26 @@ function initWebSocket() {
 
 document.getElementById('pwmSlider').addEventListener('input', function() {
     var pwmVal = this.value;
-    document.getElementById('pwmValue').innerText = pwmVal;
-    websocket.send("PWM:" + pwmVal); // WAJIB TAMBAH "PWM:"
+    document.getElementById('pwmValue').innerText = pwmVal; // Angka di layar langsung berubah
+
+    // Cegah spam ke Railway! Kirim data maksimal setiap 50 milidetik
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() {
+        if(websocket && websocket.readyState === WebSocket.OPEN) {
+            websocket.send(pwmVal);
+        }
+    }, 50); 
 });
 
 function stopMotor() {
     document.getElementById('pwmSlider').value = 0;
     document.getElementById('pwmValue').innerText = "0";
-    websocket.send("PWM:0"); // WAJIB TAMBAH "PWM:"
+    if(websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.send("0"); 
+    }
 }
+
 window.addEventListener('load', initWebSocket);
     </script>
-
 </body>
-</html> 
+</html>

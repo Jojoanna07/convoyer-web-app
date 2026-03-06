@@ -5,33 +5,30 @@ const path = require('path');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-// Menyajikan file web (index.html) dari folder 'public'
+// Menampilkan folder 'public' (tempat file index.html berada)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Menjalankan server HTTP
 const server = app.listen(PORT, () => {
-    console.log(`Server Konveyor berjalan di port ${PORT}`);
+    console.log(`Server Konveyor hidup di port ${PORT}`);
 });
 
-// Menjalankan server WebSocket (Mak Comblang)
+// Menjalankan WebSocket Server
 const wss = new Server({ server });
 
 wss.on('connection', (ws) => {
-    console.log('Ada perangkat baru yang terhubung!');
+    console.log('Ada perangkat yang terhubung ke Railway!');
 
-    // Kalau server menerima pesan dari Web atau dari ESP32
     ws.on('message', (message) => {
-        console.log(`Dapat data: ${message}`);
+        const data = message.toString();
+        console.log(`Terima perintah: ${data}`);
         
-        // Teruskan/Broadcast pesan itu ke SEMUA perangkat yang terhubung (kecuali pengirimnya)
+        // Teruskan perintah ke semua perangkat lain yang terhubung (termasuk ESP32)
         wss.clients.forEach((client) => {
             if (client !== ws && client.readyState === ws.OPEN) {
-                client.send(message.toString());
+                client.send(data);
             }
         });
     });
 
-    ws.on('close', () => {
-        console.log('Perangkat terputus.');
-    });
+    ws.on('close', () => console.log('Perangkat terputus.'));
 });
